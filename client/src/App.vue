@@ -12,12 +12,6 @@
     </v-toolbar-items>
     <v-toolbar-items v-if="user">
       <v-btn flat @click="logout">Déconnection</v-btn>
-      <v-avatar>
-        <img
-          :src="user.imageUrl"
-          :alt="user.displayName"
-        >
-      </v-avatar>
     </v-toolbar-items>
     </v-toolbar>
     <v-content>
