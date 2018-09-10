@@ -5,7 +5,7 @@
         <v-form 
           v-if="!loading"
           v-model="valid"
-          @submit.prevent="signUp"
+          @submit.prevent="login"
           @keydown.prevent.enter>
           <v-text-field
             v-model="user.email"
@@ -21,27 +21,7 @@
             type="password"
             required
           ></v-text-field>
-          <v-text-field
-            v-model="user.confirmPassword"
-            :rules="confirmPasswordRules"
-            :counter="8"
-            label="Confirmer votre mot de passe"
-            type="password"
-            required
-          ></v-text-field>
-          <v-text-field
-            v-model="user.displayName"
-            :rules="notEmptyRules"
-            label="Nom affiché de votre profil"
-            required
-          ></v-text-field>
-          <v-text-field
-            v-model="user.imageUrl"
-            :rules="notEmptyRules"
-            label="Url de votre photo de profil"
-            required
-          ></v-text-field>
-          <v-btn type="submit" :disabled="!valid">Enregistrez-vous</v-btn>
+          <v-btn type="submit" :disabled="!valid">Connexion</v-btn>
         </v-form>
         <div class="text-xs-center">
         <v-progress-circular
@@ -60,15 +40,12 @@
 import { mapState, mapActions } from 'vuex'
 
 export default {
-  name: 'signUp',
+  name: 'login',
   data: vm => ({
     valid: false,
     user: {
       email: '',
-      password: '',
-      confirmPassword: '',
-      displayName: '',
-      imageUrl: ''
+      password: ''
     },
     notEmptyRules: [value => !!value || 'Ce champ est obligatoire'],
     emailRules: [
@@ -80,30 +57,25 @@ export default {
         value.length <= 8 ||
         'Le mot de passe doit contenir au moins 8 caratères',
       value => !!value || 'Ce champ est obligatoire'
-    ],
-    confirmPasswordRules: [
-      confirmPassword =>
-        confirmPassword === vm.user.password ||
-        'Les mots de passe entrés ne sont pas identiques',
-      value =>
-        value.length <= 10 ||
-        'Le mot de passe doit contenir au moins 8 caratères'
     ]
   }),
   computed: {
-    ...mapState('users', { loading: 'isCreatePending' })
+    ...mapState('auth', { loading: 'isAuthenticatePending' })
   },
   methods: {
     ...mapActions('auth', ['authenticate']),
-    ...mapActions('auth', ['users/current']),
-    signUp() {
+    login() {
       if (this.valid) {
-        const { User } = this.$FeathersVuex
-        const user = new User(this.user)
-        user.save({}).then(user => {
-          console.log(user)
-          this.$router.push('/login')
+        this.authenticate({
+          strategy: 'local',
+          ...this.user
         })
+          .then(() => {
+            this.$router.push('/main')
+          })
+          .catch(e => {
+            console.error('Authentication error', e)
+          })
       }
     }
   }
